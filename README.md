@@ -19,11 +19,16 @@ Query execution stages:
 3. Planning (Optimization)
 4. Execution
 
+[understand cost - TODO slides?]
+
 ## Part 3. Detecting query problems
 
-Enable timing:
+Enable settings:
 ```sql
-\ timing
+\timing on
+\pset pager off
+\pset linestyle unicode
+\pset border 2
 ```
 
 ### Exercise # 1: EXPLAIN and ANALYZE. Read the query plan
@@ -47,7 +52,6 @@ EXPLAIN SELECT * from sales LIMIT 10;
 ```
 
 and
-
 ```sql
 EXPLAIN ANALYZE SELECT * from sales LIMIT 10;
 ```
@@ -65,6 +69,7 @@ FROM (
 ORDER BY sqrt(amount);
 ```
 
+We can make EXPLAIN more verbose:
 ```sql 
 EXPLAIN (analyze, verbose, costs, timing, buffers)
 SELECT *
@@ -75,8 +80,6 @@ FROM (
 ) AS sales_subset
 ORDER BY sqrt(amount);
 ```
-
-[understand cost - TODO slides?]
 
 ## Part 4. Understand indexes
 
@@ -312,8 +315,7 @@ INSERT INTO fav_foods (gourmet, fav_food) VALUES
 
 ```
 
-Where the pet lives?
-
+Where a pet lives?
 ```sql 
 SELECT * FROM pet_companions LEFT JOIN residences ON pet_companions.pet_owner = residences.residence_owner;
 ```
@@ -333,7 +335,6 @@ LEFT JOIN residences ON pet_owner = residence_owner AND pet_companions.pet = 'Ca
 ```
 
 ### Force join order
-
 
 ```sql
 SELECT * 
@@ -378,6 +379,14 @@ UPDATE pet_count SET number_of_pets = number_of_pets + 1;
 ```
 
 ## Part 7. EverSQL and AI analysers
+
+
+
+
+## Part 8. Real data demo
+
+
+
 
 
 
