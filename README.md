@@ -3,23 +3,33 @@
 ## Part 1. Set up the playground
 
 ### Set up a Postgres database
-We'll use Aiven for Postgres for an easy cloud-based solution. Follow [this link](TODO 20) to get extra credits.
+We'll use Aiven for Postgres for an easy cloud-based solution. Follow [this link](https://go.aiven.io/signup-sql-opt-101) to get extra credits.
 
 ### Prepare dev environment
 We'll be using GitHub Codespaces to simplify the setup of our playground and ensure that we have all tools in place.
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](
 https://github.com/codespaces/new/Aiven-Labs/workshop-sql-optimization)
 
+Install psql with
+```bash
+sudo apt update
+sudo apt install postgresql-client
+```
+
+![connect.png](images/connect.png)
+Connect to Postgres with psql
+
+```bash
+psql postgres://[USERNAME]:[PASSWORD]@[HOSTNAME]:[PORT]/[DATABASENAME]?sslmode=require
+```
+
 ## Part 2. Query execution flow 
 
-[TODO slides 1h]
 Query execution stages:
 1. Parsing
 2. Rewriting (Transformation)
 3. Planning (Optimization)
 4. Execution
-
-[understand cost - TODO slides?]
 
 ## Part 3. Detecting query problems
 
@@ -81,6 +91,8 @@ FROM (
 ORDER BY sqrt(amount);
 ```
 
+Documentation link: https://www.postgresql.org/docs/current/sql-explain.html
+
 ## Part 4. Understand indexes
 
 ### Add an index on a column with unique values:
@@ -129,6 +141,8 @@ Create an index for column `person_id`
 ```sql
 CREATE INDEX idx_id ON pet_preference (person_id);
 ```
+
+Reference to documentation - https://www.postgresql.org/docs/current/indexes-intro.html
 
 Let's see if that brought us improvements:
 ```sql
@@ -193,6 +207,8 @@ Observe how its size differs from full index for the same column:
 \di+
 ```
 
+Documentation link: https://www.postgresql.org/docs/current/indexes-partial.html
+
 ### Do index only scans when possible
 
 Compare: 
@@ -202,6 +218,7 @@ EXPLAIN ANALYZE SELECT * FROM pet_preference WHERE person_id = 9;
 EXPLAIN ANALYZE SELECT person_id FROM pet_preference WHERE person_id = 9;
 ```
 
+Documentation: https://www.postgresql.org/docs/current/indexes-index-only-scans.html
 
 ### Index foreign keys
 
