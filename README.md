@@ -20,18 +20,10 @@ sudo apt install postgresql-client
 Connect to Postgres with psql
 
 ```bash
-psql postgres://[USERNAME]:[PASSWORD]@[HOSTNAME]:[PORT]/[DATABASENAME]?sslmode=require
+psql 'postgres://[USERNAME]:[PASSWORD]@[HOSTNAME]:[PORT]/[DATABASENAME]?sslmode=require'
 ```
 
-## Part 2. Query execution flow 
-
-Query execution stages:
-1. Parsing
-2. Rewriting (Transformation)
-3. Planning (Optimization)
-4. Execution
-
-## Part 3. Detecting query problems
+## Part 2. Detecting query problems
 
 Enable settings:
 ```sql
@@ -41,7 +33,7 @@ Enable settings:
 \pset border 2
 ```
 
-### Exercise # 1: EXPLAIN and ANALYZE. Read the query plan
+### EXPLAIN and ANALYZE. Read the query plan
 
 Create a simple test table and populate it with numbers: 
 
@@ -93,7 +85,7 @@ ORDER BY sqrt(amount);
 
 Documentation link: https://www.postgresql.org/docs/current/sql-explain.html
 
-## Part 4. Understand indexes
+## Part 3. Understand indexes
 
 ### Add an index on a column with unique values:
 
@@ -289,7 +281,7 @@ FROM
 pg_stat_user_indexes;
 ```
 
-## Part 5. Joins
+## Part 4. Joins
 
 Create tables that contain information about several individuals
 ```sql
@@ -394,14 +386,6 @@ FROM generate_series(1, 1000000);
 SELECT pg_size_pretty(pg_relation_size('pet_count'));
 UPDATE pet_count SET number_of_pets = number_of_pets + 1;
 ```
-
-## Part 7. EverSQL and AI analysers
-
-
-
-
-## Part 8. Real data demo
-
 
 
 
