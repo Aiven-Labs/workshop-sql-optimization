@@ -165,7 +165,7 @@ Add another index. This time on the pet field:
 CREATE INDEX idx_animal ON pet_preference (animal);
 ```
 
-Run the queries, does the planner use an index? Why or why not? What do you think? [TODO explain cardinality slides]
+Run the queries, does the planner use an index? Why or why not? What do you think?
 ```sql
 EXPLAIN ANALYZE
 SELECT *
