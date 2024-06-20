@@ -31,6 +31,7 @@ Enable settings:
 \pset pager off
 \pset linestyle unicode
 \pset border 2
+\set PROMPT1 '> '
 ```
 
 ### EXPLAIN and ANALYZE. Read the query plan
