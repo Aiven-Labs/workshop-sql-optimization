@@ -8,14 +8,15 @@ We'll be using GitHub Codespaces to simplify the setup of our playground and ens
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](
 https://github.com/codespaces/new/Aiven-Labs/workshop-sql-optimization)
 
-### Set up a Postgres database
-We'll use Aiven for Postgres for an easy cloud-based solution. Follow [this link](https://go.aiven.io/signup-sql-opt-101) to get extra credits.
-
 Install psql with
 ```bash
 sudo apt update
 sudo apt install postgresql-client
 ```
+
+### Set up a Postgres database
+We'll use Aiven for Postgres for an easy cloud-based solution. Follow [this link](https://go.aiven.io/signup-sql-opt-101) to get extra credits.
+
 
 ![connect.png](images/connect.png)
 Connect to Postgres with psql
