@@ -2,13 +2,14 @@
 
 ## Part 1. Set up the playground
 
-### Set up a Postgres database
-We'll use Aiven for Postgres for an easy cloud-based solution. Follow [this link](https://go.aiven.io/signup-sql-opt-101) to get extra credits.
 
 ### Prepare dev environment
 We'll be using GitHub Codespaces to simplify the setup of our playground and ensure that we have all tools in place.
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](
 https://github.com/codespaces/new/Aiven-Labs/workshop-sql-optimization)
+
+### Set up a Postgres database
+We'll use Aiven for Postgres for an easy cloud-based solution. Follow [this link](https://go.aiven.io/signup-sql-opt-101) to get extra credits.
 
 Install psql with
 ```bash
@@ -32,6 +33,7 @@ Enable settings:
 \pset linestyle unicode
 \pset border 2
 \set PROMPT1 '> '
+\set PROMPT2 '' 
 ```
 
 ### EXPLAIN and ANALYZE. Read the query plan
@@ -51,12 +53,14 @@ FROM generate_series(1, 1000000); -- Inserting 1 million rows
 
 Compare:
 ```sql
-EXPLAIN SELECT * from sales LIMIT 10;
+EXPLAIN 
+SELECT * from sales LIMIT 10;
 ```
 
 and
 ```sql
-EXPLAIN ANALYZE SELECT * from sales LIMIT 10;
+EXPLAIN ANALYZE 
+SELECT * from sales LIMIT 10;
 ```
 
 Let's make the analyzed result a bit more interesting. Run this query:
@@ -206,9 +210,13 @@ Documentation link: https://www.postgresql.org/docs/current/indexes-partial.html
 
 Compare: 
 ```sql
-EXPLAIN ANALYZE SELECT * FROM pet_preference WHERE person_id = 9;
+EXPLAIN ANALYZE 
+SELECT * FROM pet_preference 
+WHERE person_id = 9;
 
-EXPLAIN ANALYZE SELECT person_id FROM pet_preference WHERE person_id = 9;
+EXPLAIN ANALYZE 
+SELECT person_id FROM pet_preference 
+WHERE person_id = 9;
 ```
 
 Documentation: https://www.postgresql.org/docs/current/indexes-index-only-scans.html
@@ -268,7 +276,8 @@ Observe the decrease of time.
 ### Find missing indexes
 
 ```sql
-SELECT schemaname, relname, seq_scan, seq_tup_read, seq_scan AS avg, idx_scan
+SELECT schemaname, relname, seq_scan, seq_tup_read, seq_scan 
+AS avg, idx_scan
 FROM pg_stat_user_tables
 WHERE seq_scan > 0
 order by seq_tup_read DESC;
@@ -277,7 +286,8 @@ order by seq_tup_read DESC;
 ### Finding useless indexes
 
 ```sql
-SELECT schemaname, relname, indexrelname, idx_scan, pg_size_pretty (pg_relation_size (indexrelid)) AS idx_size 
+SELECT schemaname, relname, indexrelname, idx_scan, pg_size_pretty (pg_relation_size (indexrelid)) 
+AS idx_size 
 FROM
 pg_stat_user_indexes;
 ```
@@ -327,12 +337,19 @@ INSERT INTO fav_foods (gourmet, fav_food) VALUES
 
 Where a pet lives?
 ```sql 
-SELECT * FROM pet_companions LEFT JOIN residences ON pet_companions.pet_owner = residences.residence_owner;
+SELECT * 
+FROM pet_companions 
+LEFT JOIN residences 
+ON pet_companions.pet_owner = residences.residence_owner;
 ```
 
 Now look at the request below. How many results would you expect to get?
 ```sql 
-SELECT * FROM pet_companions LEFT JOIN residences ON pet_companions.pet_owner = residences.residence_owner AND pet_companions.pet = 'Cat';
+SELECT * 
+FROM pet_companions 
+LEFT JOIN residences 
+ON pet_companions.pet_owner = residences.residence_owner 
+AND pet_companions.pet = 'Cat';
 ```
 
 Problem:
@@ -340,7 +357,8 @@ Problem:
 ```sql
 SELECT COUNT(pet_owner), COUNT(residence_owner)
 FROM pet_companions
-LEFT JOIN residences ON pet_owner = residence_owner AND pet_companions.pet = 'Cat';
+LEFT JOIN residences 
+ON pet_owner = residence_owner AND pet_companions.pet = 'Cat';
 
 ```
 
