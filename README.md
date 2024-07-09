@@ -293,103 +293,7 @@ FROM
 pg_stat_user_indexes;
 ```
 
-## Part 4. Joins
-
-Create tables that contain information about several individuals
-```sql
-
--- Create table for pet companions
-CREATE TABLE pet_companions (
-    pet_owner VARCHAR(50),
-    pet VARCHAR(50)
-);
-
--- Create table for residences
-CREATE TABLE residences (
-    residence_owner VARCHAR(50),
-    residence VARCHAR(50)
-);
-
--- Create table for favorite foods
-CREATE TABLE fav_foods (
-    gourmet VARCHAR(50),
-    fav_food VARCHAR(50)
-);
-
--- Insert data into pet_companions table
-INSERT INTO pet_companions (pet_owner, pet) VALUES 
-('Alice', 'Cat'), 
-('Bob', 'Dog'), 
-('Lisa', 'Rat');
-
--- Insert data into residences table
-INSERT INTO residences (residence_owner, residence) VALUES 
-('Alice', 'House'), 
-('Bob', 'Farm'), 
-('Lisa', 'Flat');
-
--- Insert data into fav_foods table
-INSERT INTO fav_foods (gourmet, fav_food) VALUES 
-('Alice', 'Pizza'), 
-('Bob', 'Chocolate'), 
-('Tom', 'Pineapple');
-
-```
-
-Where a pet lives?
-```sql 
-SELECT * 
-FROM pet_companions 
-LEFT JOIN residences 
-ON pet_companions.pet_owner = residences.residence_owner;
-```
-
-Now look at the request below. How many results would you expect to get?
-```sql 
-SELECT * 
-FROM pet_companions 
-LEFT JOIN residences 
-ON pet_companions.pet_owner = residences.residence_owner 
-AND pet_companions.pet = 'Cat';
-```
-
-Problem:
-
-```sql
-SELECT COUNT(pet_owner), COUNT(residence_owner)
-FROM pet_companions
-LEFT JOIN residences 
-ON pet_owner = residence_owner AND pet_companions.pet = 'Cat';
-
-```
-
-### Force join order
-
-```sql
-SELECT * 
-FROM pet_companions, residences, fav_foods 
-WHERE pet_companions.pet_owner = residences.residence_owner 
-AND residences.residence_owner = fav_foods.gourmet;
-```
-
-```sql 
-SELECT * 
-FROM pet_companions 
-CROSS JOIN residences 
-CROSS JOIN fav_foods 
-WHERE pet_companions.pet_owner = residences.residence_owner 
-AND residences.residence_owner = fav_foods.gourmet;
-
-```
-
-```sql
-SELECT * 
-FROM pet_companions 
-JOIN (residences JOIN fav_foods ON residences.residence_owner = fav_foods.gourmet) 
-ON pet_companions.pet_owner = residences.residence_owner;
-```
-
-## Part 6. Vacuuming and reusing space
+## Part 4. Vacuuming and reusing space
 
 ```sql
 CREATE TABLE pet_count (
@@ -405,6 +309,42 @@ FROM generate_series(1, 1000000);
 ```sql
 SELECT pg_size_pretty(pg_relation_size('pet_count'));
 UPDATE pet_count SET number_of_pets = number_of_pets + 1;
+```
+
+When to beware of index bloat (aka when to REINDEX):
+
+```sql
+CREATE EXTENSION pgstattuple;
+SELECT pg_size_pretty(pg_relation_size('pet_preference')) as table_size, 
+       pg_size_pretty(pg_relation_size('idx_id')) as index_size,
+       (pgstattuple('pet_preference')).dead_tuple_percent;
+
+-- No Bloat, lets Delete a 3rd of the rows...
+DELETE FROM pet_preference WHERE person_id % 3 = 0;
+
+-- Update Stats
+ANALYZE pet_preference;
+
+-- Check Bloat
+SELECT pg_size_pretty(pg_relation_size('pet_preference')) as table_size, 
+       pg_size_pretty(pg_relation_size('idx_id')) as index_size,
+       (pgstattuple('pet_preference')).dead_tuple_percent;
+
+SELECT pg_relation_size('pet_preference') as table_size, 
+       pg_relation_size('idx_id') as index_size,
+       100-(pgstatindex('idx_id')).avg_leaf_density as bloat_ratio;
+
+-- Cleanup
+VACUUM ANALYZE pet_preference ;
+
+SELECT pg_size_pretty(pg_relation_size('pet_preference')) as table_size, 
+       pg_size_pretty(pg_relation_size('idx_id')) as index_size,
+       (pgstattuple('pet_preference')).dead_tuple_percent;
+
+-- Check Again
+SELECT pg_relation_size('pet_preference') as table_size, 
+       pg_relation_size('idx_id') as index_size,
+       100-(pgstatindex('idx_id')).avg_leaf_density as bloat_ratio;
 ```
 
 
