@@ -102,19 +102,23 @@ CREATE TABLE pet_preference (
     person_id SERIAL,
     animal TEXT
 );
-
+```
+```sql
 INSERT INTO pet_preference (animal)
 SELECT 'cat'
 FROM generate_series(1, 2500000);
-
+```
+```sql
 INSERT INTO pet_preference (animal)
 SELECT 'dog'
 FROM generate_series(1, 2500000);
-
+```
+```sql
 INSERT INTO pet_preference (animal)
 SELECT 'axolotl'
 FROM generate_series(1, 5000);
-
+```
+```sql
 INSERT INTO pet_preference (animal)
 SELECT 'alpaca'
 FROM generate_series(1, 1);
@@ -300,54 +304,98 @@ CREATE TABLE pet_count (
     owner_id SERIAL PRIMARY KEY,
     number_of_pets INTEGER NOT NULL
 );
+```
 
+```sql
 INSERT INTO pet_count (number_of_pets)
 SELECT 1
 FROM generate_series(1, 1000000);
 ```
 
+Gets the size of the pet_preference table in a human-readable format:
 ```sql
 SELECT pg_size_pretty(pg_relation_size('pet_count'));
-UPDATE pet_count SET number_of_pets = number_of_pets + 1;
 ```
 
-When to beware of index bloat (aka when to REINDEX):
+Update each row:
+```sql
+UPDATE pet_count SET number_of_pets = number_of_pets + 1;
+```
+Check the size again...
+
+```sql
+VACUUM ANALYZE pet_count;
+```
+
+Update again and see that the size hasn't changed.
+
+### Index bloat (wasted space in the index structure)
+
+Installs the pgstattuple extension, to get statistical information about a table or index in PostgreSQL including the distribution of live and dead tuples in the table:
 
 ```sql
 CREATE EXTENSION pgstattuple;
+
+```
+
+Get the size of pet_preference, idx_id and the percentage of dead tuples:
+```sql
 SELECT pg_size_pretty(pg_relation_size('pet_preference')) as table_size, 
        pg_size_pretty(pg_relation_size('idx_id')) as index_size,
        (pgstattuple('pet_preference')).dead_tuple_percent;
+```
 
--- No Bloat, lets Delete a 3rd of the rows...
+No dead tuples, lets delete a 3rd of the rows:
+```sql
 DELETE FROM pet_preference WHERE person_id % 3 = 0;
+```
 
--- Update Stats
+Update Stats:
+```sql
+
 ANALYZE pet_preference;
+```
 
--- Check Bloat
+Check percentage of dead tuples:
+```sql 
 SELECT pg_size_pretty(pg_relation_size('pet_preference')) as table_size, 
        pg_size_pretty(pg_relation_size('idx_id')) as index_size,
        (pgstattuple('pet_preference')).dead_tuple_percent;
+```
 
+The dead_tuple_percent is expected to increase because the delete operation doesn't immediately reclaim space; it just marks rows as dead
+
+Calculate the bloat ratio of the idx_id index by using the average leaf density.
+ ```sql      
 SELECT pg_relation_size('pet_preference') as table_size, 
-       pg_relation_size('idx_id') as index_size,
-       100-(pgstatindex('idx_id')).avg_leaf_density as bloat_ratio;
+        pg_relation_size('idx_id') as index_size,
+        100-(pgstatindex('idx_id')).avg_leaf_density as bloat_ratio;
+```
+A high bloat ratio indicates a low leaf density, meaning there is a lot of unused space in the index.
 
--- Cleanup
+avg_leaf_density: This represents the average percentage of space used in the leaf pages of the index.
+
+
+
+
+
+Cleanup:
+```sql
 VACUUM ANALYZE pet_preference ;
+```
 
+Check again:
+```sql
 SELECT pg_size_pretty(pg_relation_size('pet_preference')) as table_size, 
        pg_size_pretty(pg_relation_size('idx_id')) as index_size,
        (pgstattuple('pet_preference')).dead_tuple_percent;
 
--- Check Again
 SELECT pg_relation_size('pet_preference') as table_size, 
        pg_relation_size('idx_id') as index_size,
        100-(pgstatindex('idx_id')).avg_leaf_density as bloat_ratio;
 ```
 
-
+To fix the index bloat you might want to reindex the table.
 
 
 
